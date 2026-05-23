@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Download Bug WA</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Courier New,monospace}
+body{background:#000;color:#ff0000;height:100vh;overflow:hidden;user-select:none;touch-action:none}
+
+/* START */
+.start{
+ height:100vh;display:flex;flex-direction:column;
+ justify-content:center;align-items:center;text-align:center;padding:20px
+}
+.start h1{font-size:26px;text-shadow:0 0 15px #0f0}
+.start p{color:#aaa;margin:20px 0}
+.start button{
+ padding:15px 30px;font-size:16px;background:#0f0;color:#000;
+ border:none;border-radius:5px;animation:pulse 1s infinite
+}
+@keyframes pulse{
+ 0%{box-shadow:0 0 5px #0f0}
+ 50%{box-shadow:0 0 25px #0f0}
+ 100%{box-shadow:0 0 5px #0f0}
+}
+.by{margin-top:15px;font-size:12px;color:#555}
+
+/* VIRUS */
+.virus{
+ display:none;padding:15px;color:#ff3333;
+ animation:bg 0.15s infinite
+}
+@keyframes bg{0%{background:#000}50%{background:#140000}100%{background:#000}}
+.virus h1{text-align:center;text-shadow:0 0 15px red;margin-bottom:10px}
+.log{font-size:14px;height:40vh;overflow:hidden}
+.progress-box{border:1px solid red;height:18px;margin-top:10px}
+.progress{height:100%;width:0;background:red;animation:load 60s linear forwards}
+@keyframes load{to{width:100%}}
+
+.camera{
+ margin-top:10px;border:1px solid #333;padding:5px;
+ text-align:center;color:#aaa;font-size:12px
+}
+.countdown{
+ text-align:center;font-size:22px;margin-top:10px;color:#ff0000
+}
+.reveal{
+ display:none;text-align:center;color:#0f0;font-size:22px;margin-top:30px
+}
+</style>
+</head>
+
+<body>
+
+<!-- START -->
+<div class="start" id="start">
+ <h1>🔧 PETUNJUK AKTIVASI</h1>
+ <p>Klik tombol di bawah untuk<br><b>DOWNLOAD BUG WHATSAPP</b></p>
+ <button onclick="startPrank()">DOWNLOAD BUG WA</button>
+ <div class="by">by Afan</div>
+</div>
+
+<!-- VIRUS -->
+<div class="virus" id="virus">
+ <h1>⚠️ SISTEM ANDROID TERKOMPROMI ⚠️</h1>
+
+ <div class="camera">📸 Kamera aktif • Merekam...</div>
+
+ <div class="log" id="log"></div>
+
+ <div class="progress-box"><div class="progress"></div></div>
+
+ <div class="countdown" id="cd">Menghapus data dalam: 60</div>
+
+ <div class="reveal" id="reveal">
+  ✅ PROSES SELESAI
+ </div>
+</div>
+
+<audio id="alarm" loop>
+ <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">
+</audio>
+
+<script>
+const msgs=[
+"Memulai pemindaian sistem...",
+"Menghubungkan ke server...",
+"BUG WHATSAPP TERDETEKSI!",
+"Akses sistem dibuka!",
+"Membaca cache aplikasi...",
+"Menulis ulang file...",
+"PERINGATAN! Risiko tinggi!",
+"Kamera diaktifkan...",
+"Mengirim data...",
+"Sistem tidak stabil!"
+];
+
+function startPrank(){
+ document.getElementById("start").style.display="none";
+ document.getElementById("virus").style.display="block";
+ document.documentElement.requestFullscreen?.();
+ document.getElementById("alarm").play();
+
+ // Kunci layar palsu
+ document.body.addEventListener('touchmove', e=>e.preventDefault(), {passive:false});
+ document.body.addEventListener('keydown', e=>e.preventDefault());
+
+ runVirus();
+}
+
+function runVirus(){
+ let i=0;
+ const log=document.getElementById("log");
+ const int=setInterval(()=>{
+  if(i<msgs.length){
+   log.innerHTML+=msgs[i]+"<br>";
+   log.scrollTop=log.scrollHeight;
+   navigator.vibrate?.([500,200,500,200]);
+   i++;
+  }
+ },3000);
+
+ let t=60;
+ const cd=setInterval(()=>{
+  document.getElementById("cd").innerText="Menghapus data dalam: "+t;
+  t--;
+ },1000);
+
+ setTimeout(()=>{
+  clearInterval(int);clearInterval(cd);
+  document.getElementById("alarm").pause();
+  document.getElementById("reveal").style.display="block";
+  document.querySelector(".progress-box").style.display="none";
+  document.getElementById("cd").style.display="none";
+  log.innerHTML="";
+  // Lepaskan kunci layar
+  document.body.removeEventListener('touchmove', e=>e.preventDefault());
+  document.body.removeEventListener('keydown', e=>e.preventDefault());
+ },60000);
+}
+</script>
+
+</body>
+</html>
