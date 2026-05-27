@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rocket Chicken Bojong - Tegal</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+      color: #333;
+    }
+    
+    /* Navbar lebih ramping dan tidak full lebar */
+    nav {
+      position: sticky;
+      top: 0;
+      background: rgba(211, 47, 47, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 8px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    .nav-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: 12px;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    nav a:hover {
+      background: white;
+      color: #d32f2f;
+      transform: translateY(-2px);
+    }
+    
+    /* Keranjang */
+    .cart-btn {
+      position: relative;
+      background: white;
+      color: #d32f2f;
+      padding: 6px 12px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+    .cart-btn:hover {
+      transform: scale(1.05);
+    }
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ffeb3b;
+      color: #d32f2f;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    /* Modal Keranjang */
+    .cart-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      max-width: 400px;
+      height: 100%;
+      background: white;
+      box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+      z-index: 2000;
+      overflow-y: auto;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    .cart-header {
+      background: #d32f2f;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .close-cart {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .cart-total {
+      padding: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: right;
+      border-top: 2px solid #d32f2f;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1999;
+    }
+    
+    /* Animasi item terbang */
+    .flying-item {
+      position: fixed;
+      z-index: 3000;
+      pointer-events: none;
+      animation: flyToCart 0.8s ease-in-out;
+    }
+    @keyframes flyToCart {
+      0% { transform: scale(1) translate(0, 0); opacity: 1; }
+      100% { transform: scale(0.3) translate(var(--end-x), var(--end-y)); opacity: 0; }
+    }
+    
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+      color: white;
+    }
+    .hero h1 {
+      font-size: 3em;
+      animation: slideDown 1s ease;
+    }
+    .hero p {
+      font-size: 1.2em;
+      margin-top: 10px;
+      animation: fadeIn 1.5s ease;
+    }
+    
+    @keyframes slideDown {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .floating {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .section {
+      margin-bottom: 60px;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 0.8s ease forwards;
+    }
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .section h2 {
+      color: #d32f2f;
+      font-size: 2em;
+      margin-bottom: 20px;
+      border-left: 5px solid #d32f2f;
+      padding-left: 15px;
+    }
+    
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(211, 47, 47, 0.2);
+    }
+    
+    .foto {
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .bintang { 
+      color: #ffb400; 
+      font-size: 28px; 
+    }
+    
+    /* Menu */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .menu-item {
+      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .menu-item:hover {
+      border-color: #d32f2f;
+      transform: scale(1.05);
+    }
+    .menu-harga {
+      color: #d32f2f;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .btn-tambah {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    .btn-tambah:hover {
+      background: #b71c1c;
+      transform: scale(1.1);
+    }
+    
+    /* Review Slider */
+    .review-slider {
+      overflow: hidden;
+      position: relative;
+      padding: 20px 0;
+    }
+    .review-track {
+      display: flex;
+      animation: slideReview 20s linear infinite;
+    }
+    @keyframes slideReview {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .review-card {
+      min-width: 300px;
+      background: #fff3e0;
+      padding: 20px;
+      margin: 0 10px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    .review-nama {
+      font-weight: bold;
+      color: #d32f2f;
+      margin-top: 10px;
+    }
+    
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .check::before { content: "✓ "; color: #2e7d32; font-weight: bold; }
+    .cross::before { content: "✗ "; color: #9e9e9e; font-weight: bold; }
+    .cross { color: #9e9e9e; }
+    
+    .btn-wa {
+      display: inline-block;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color: white;
+      padding: 15px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .btn-wa:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 25px rgba(37, 211, 102, 0.5);
+    }
+    
+    table { width: 100%; }
+    td { padding: 8px 0; }
+    td:last-child { text-align: right; font-weight: bold; }
+    .catatan { color: #e65100; font-size: 14px; }
+    
+    iframe {
+      width: 100%;
+      height: 350px;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    hr {
+      border: none;
+      border-top: 2px dashed #ddd;
+      margin: 20px 0;
+    }
+    
+    /* Chatbot Mini */
+    .chatbot-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #d32f2f;
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
+      z-index: 1500;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .chatbot-box {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 300px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+      z-index: 1500;
+      overflow: hidden;
+    }
+    .chatbot-header {
+      background: #d32f2f;
+      color: white;
+      padding: 15px;
+      font-weight: bold;
+    }
+    .chatbot-body {
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .chat-option {
+      background: #f5f5f5;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .chat-option:hover {
+      background: #ffe0e0;
+    }
+    .chat-answer {
+      background: #e8f5e9;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border-left: 3px solid #2e7d32;
+    }
+    
+    .section:nth-child(1) { animation-delay: 0.1s; }
+    .section:nth-child(2) { animation-delay: 0.2s; }
+    .section:nth-child(3) { animation-delay: 0.3s; }
+    .section:nth-child(4) { animation-delay: 0.4s; }
+    .section:nth-child(5) { animation-delay: 0.5s; }
+    
+    @media (max-width: 600px) {
+      .nav-container { padding: 0 10px; }
+      nav ul { gap: 6px; }
+      nav a { font-size: 11px; padding: 4px 8px; }
+      .cart-btn { font-size: 11px; padding: 5px 10px; }
+      .hero h1 { font-size: 2em; }
+      .cart-modal { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay" onclick="toggleCart()"></div>
+  
+  <div class="cart-modal" id="cartModal">
+    <div class="cart-header">
+      <h3>🛒 Keranjang Belanja</h3>
+      <button class="close-cart" onclick="toggleCart()">×</button>
+    </div>
+    <div id="cartItems"></div>
+    <div class="cart-total" id="cartTotal">Total: Rp 0</div>
+    <div style="padding: 0 20px 20px;">
+      <button class="btn-wa" onclick="orderWA()">📱 Order via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- Navbar lebih ramping -->
+  <nav>
+    <div class="nav-container">
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#promo">Promo</a></li>
+        <li><a href="#catering">Catering</a></li>
+        <li><a href="#review">Review</a></li>
+        <li><a href="#info">Info</a></li>
+        <li><a href="#lokasi">Lokasi</a></li>
+        <li><a href="#jam">Jam</a></li>
+      </ul>
+      <div class="cart-btn" onclick="toggleCart()">
+        🛒 <span id="cartBadge">0</span>
+      </div>
+    </div>
+  </nav>
+
+  <section id="home" class="hero">
+    <h1 class="floating">🚀 Rocket Chicken Bojong</h1>
+    <p>Restoran Masakan Ayam | Harga Rp 1-25.000</p>
+  </section>
+
+  <div class="container">
+    <section class="section">
+      <div class="card">
+        <img src="https://narsoriswad2-beep.github.io/tikdash-afan/toko.png" alt="Foto Toko" class="foto">
+        <div style="margin-top: 20px; text-align: center;">
+          <h2 style="border: none; padding: 0;">Rating</h2>
+          <p class="bintang">★★☆</p>
+          <p><strong>4.1</strong> dari 341 ulasan</p>
+          <p style="color: green; font-weight: bold;">Buka</p>
+          <p style="font-style: italic;">Bisa beda saat liburan</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="menu" class="section">
+      <h2>Rocket Kids Menu</h2>
+      <div class="card">
+        <img src="menu-kids.jpg" alt="Menu Rocket Kids" class="foto">
+        <div class="menu-grid">
+          <div class="menu-item">
+            <h3>Rocket Kids 1</h3>
+            <p style="font-size: 14px; color: #666;">Nasi, Paha Bawah, Milo, Buku Cerita & Mainan</p>
+            <div class="menu-harga">Rp 27.000</div>
+            <button class="btn-tambah" onclick="addToCart(event, 'Rocket Kids 1', 27000)">+ Tambah</button>
+          </div>
+          <div class="menu-item">
+            <h3>Rocket Kids 2</h3>
+            <p style="font-size: 14px; color: #666;">Nasi, Dada/Paha Atas, Milo, Buku Cerita & Mainan</p>
+            <div class="menu-harga">Rp 30.000</div>
+            <button class="btn-tambah" onclick="addToCart(event, 'Rocket Kids 2', 30000)">+ Tambah</button>
+          </div>
+          <div class="menu-item">
+            <h3>Rocket Kids 3</h3>
+            <p style="font-size: 14px; color: #666;">Nasi, 4 pcs Chicken Strip, Milo, Buku Cerita & Mainan</p>
+            <div class="menu-harga">Rp 30.000</div>
+            <button class="btn-tambah" onclick="addToCart(event, 'Rocket Kids 3', 30000)">+ Tambah</button>
+          </div>
+        </div>
+        <p style="margin-top: 15px; text-align: center; color: #e65100;">🎁 Bonus: Kumpulkan mainan & buku cerita anak di setiap pembelian</p>
+      </div>
+    </section>
+
+    <section id="promo" class="section">
+      <h2>Promo Serba 5.000</h2>
+      <div class="menu-grid">
+        <div class="menu-item">
+          <div class="menu-harga">Rp 5.000</div>
+          <p>Perkedel 2 Pcs</p>
+          <button class="btn-tambah" onclick="addToCart(event, 'Perkedel 2 Pcs', 5000)">+ Tambah</button>
+        </div>
+        <div class="menu-item">
+          <div class="menu-harga">Rp 5.000</div>
+          <p>Chicken Strip 2 Pcs</p>
+          <button class="btn-tambah" onclick="addToCart(event, 'Chicken Strip 2 Pcs', 5000)">+ Tambah</button>
+        </div>
+        <div class="menu-item">
+          <div class="menu-harga">Rp 5.000</div>
+          <p>Ice Cream 2 Pcs</p>
+          <button class="btn-tambah" onclick="addToCart(event, 'Ice Cream 2 Pcs', 5000)">+ Tambah</button>
+        </div>
+        <div class="menu-item" style="background: #ffebee;">
+          <div style="text-decoration: line-through; color: #9e9e9e; font-size: 20px;">Rp 5.000</div>
+          <p style="color: #9e9e9e;">All Variant Milkshake<br><small>✗ Sedang tidak tersedia</small></p>
+        </div>
+      </div>
+      <p style="text-align: center; margin-top: 15px; color: #666;">* Minimal pembelanjaan Rp 15.000</p>
+    </section>
+
+    <section id="catering" class="section">
+      <h2>Menu Catering</h2>
+      <div class="card">
+        <div class="menu-grid">
+          <div class="menu-item">
+            <h3>Catering 1</h3>
+            <p style="font-size: 14px; color: #666;">Nasi Sayap</p>
+            <div class="menu-harga">Rp 9.500</div>
+            <p style="font-size: 12px; color: #999;">Min. 20 box - Order via WA</p>
+          </div>
+          <div class="menu-item">
+            <h3>Catering 2</h3>
+            <p style="font-size: 14px; color: #666;">Nasi Paha Bawah</p>
+            <div class="menu-harga">Rp 10.500</div>
+            <p style="font-size: 12px; color: #999;">Min. 20 box - Order via WA</p>
+          </div>
+          <div class="menu-item">
+            <h3>Catering 3</h3>
+            <p style="font-size: 14px; color: #666;">Nasi Dada</p>
+            <div class="menu-harga">Rp 13.500</div>
+            <p style="font-size: 12px; color: #999;">Min. 20 box - Order via WA</p>
+          </div>
+        </div>
+        <p style="margin-top: 15px; text-align: center; color: #e65100;">⚠️ Minimal pemesanan 20 box</p>
+      </div>
+    </section>
+
+    <section id="review" class="section">
+      <h2>Apa Kata Pelanggan</h2>
+      <div class="card">
+        <div class="review-slider">
+          <div class="review-track">
+            <div class="review-card">
+              <p class="bintang">★★★</p>
+              <p>"Ayamnya crispy banget, sambalnya nampol! Anak-anak suka banget Rocket Kids-nya."</p>
+              <p class="review-nama">- Siti, Bojong</p>
+            </div>
+            <div class="review-card">
+              <p class="bintang">★★★</p>
+              <p>"Pelayanan ramah, harga terjangkau. Promo serba 5rb wajib coba!"</p>
+              <p class="review-nama">- Budi, Tegal</p>
+            </div>
+            <div class="review-card">
+              <p class="bintang">★★☆</p>
+              <p>"Catering buat arisan lancar, packing rapi. Recommended!"</p>
+              <p class="review-nama">- Maya, Slawi</p>
+            </div>
+            <div class="review-card">
+              <p class="bintang">★★★</p>
+              <p>"Tempatnya bersih, parkir luas. Ayam gorengnya juara!"</p>
+              <p class="review-nama">- Agus, Bojong</p>
+            </div>
+            <div class="review-card">
+              <p class="bintang">★★★</p>
+              <p>"Ayamnya crispy banget, sambalnya nampol! Anak-anak suka banget Rocket Kids-nya."</p>
+              <p class="review-nama">- Siti, Bojong</p>
+            </div>
+            <div class="review-card">
+              <p class="bintang">★★★</p>
+              <p>"Pelayanan ramah, harga terjangkau. Promo serba 5rb wajib coba!"</p>
+              <p class="review-nama">- Budi, Tegal</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="info" class="section">
+      <h2>Info Lengkap</h2>
+      <div class="card">
+        <h3>Opsi Layanan</h3>
+        <div class="grid-2">
+          <div class="check">Antar tanpa bertemu</div>
+          <div class="check">Pesan antar</div>
+          <div class="check">Bawa pulang</div>
+          <div class="check">Makan di tempat</div>
+        </div>
+        <hr>
+        <h3>Populer Untuk</h3>
+        <div class="grid-2">
+          <div class="check">Makan siang</div>
+          <div class="check">Makan malam</div>
+          <div class="check">Makan sendiri</div>
+        </div>
+        <hr>
+        <h3>Fasilitas</h3>
+        <div class="grid-2">
+          <div class="check">Toilet</div>
+        </div>
+        <hr>
+        <h3>Suasana</h3>
+        <div class="grid-2">
+          <div class="check">Nyaman</div>
+          <div class="check">Santai</div>
+        </div>
+        <hr>
+        <h3>Tipe Pengunjung</h3>
+        <div class="grid-2">
+          <div class="check">Berkelompok</div>
+          <div class="check">Mahasiswa</div>
+          <div class="check">Turis</div>
+        </div>
+        <hr>
+        <h3>Perencanaan</h3>
+        <div class="grid-2">
+          <div class="check">Menerima reservasi</div>
+          <div class="check">Biasanya menunggu</div>
+        </div>
+        <hr>
+        <h3>Pembayaran</h3>
+        <div class="grid-2">
+          <div class="check">Kartu debit</div>
+        </div>
+        <hr>
+        <h3>Anak-anak</h3>
+        <div class="grid-2">
+          <div class="check">Cocok untuk anak-anak</div>
+          <div class="check">Cocok untuk ulang tahun anak</div>
+          <div class="check">Menu anak</div>
+        </div>
+        <hr>
+        <h3>Parkir</h3>
+        <div class="grid-2">
+          <div class="check">Tempat parkir berbayar</div>
+        </div>
+        <hr>
+        <h3>Aksesibilitas</h3>
+        <div class="grid-2">
+          <div class="cross">Kursi Khusus pengguna Kursi roda</div>
+          <div class="cross">Pintu masuk Khusus pengguna Kursi roda</div>
+          <div class="cross">Tempat parkir Khusus pengguna Kursi roda</div>
+        </div>
+        <hr>
+        <h3>Penawaran</h3>
+        <div class="check">Cepat saji</div>
+      </div>
+    </section>
+
+    <section id="lokasi" class="section">
+      <h2>Lokasi</h2>
+      <div class="card">
+        <p style="margin-bottom: 15px;">V47X+WGR, Jl. K H Fatah Yasin, Sarwan, Bojong, Kec. Bojong, Kabupaten Tegal, Jawa Tengah 52465</p>
+        <iframe src="https://www.google.com/maps?q=V47X+WGR+Bojong+Tegal&output=embed" allowfullscreen></iframe>
+      </div>
+    </section>
+
+    <section id="jam" class="section">
+      <h2>Jam Buka</h2>
+      <div class="card">
+        <table>
+          <tr><td>Senin</td><td>09:00-21:00</td></tr>
+          <tr><td colspan="2" class="catatan">Hari Lahir Pancasila - Jam operasional mungkin berbeda</td></tr>
+          <tr><td>Selasa</td><td>09:00-21:00</td></tr>
+          <tr><td>Rabu</td><td>09:00-21:00</td></tr>
+          <tr><td colspan="2" class="catatan">Idul Adha - Jam operasional mungkin berbeda</td></tr>
+          <tr><td>Kamis</td><td>09:00-21:00</td></tr>
+          <tr><td>Jumat</td><td>09:00-21:00</td></tr>
+          <tr><td>Sabtu</td><td>09:00-21:00</td></tr>
+          <tr><td>Minggu</td><td>09:00-21:00</td></tr>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="chatbot-btn" onclick="toggleChat()">💬</div>
+  <div class="chatbot-box" id="chatbotBox">
+    <div class="chatbot-header">Halo! Ada yang bisa dibantu? 😊</div>
+    <div class="chatbot-body" id="chatBody">
+      <div class="chat-option" onclick="showAnswer('jam')">Jam buka kapan?</div>
+      <div class="chat-option" onclick="showAnswer('menu')">Ada menu pedas?</div>
+      <div class="chat-option" onclick="showAnswer('catering')">Minimal order catering?</div>
+      <div class="chat-option" onclick="showAnswer('promo')">Promo apa yang ada?</div>
+    </div>
+  </div>
+
+  <script>
+    let cart = [];
+    
+    const kachingSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
+    
+    function addToCart(event, name, price) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ name, price, qty: 1 });
+      }
+      updateCart();
+      
+      kachingSound.currentTime = 0;
+      kachingSound.play();
+      
+      flyToCart(event.target);
+      
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '✓ Ditambah';
+      btn.style.background = '#2e7d32';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '#d32f2f';
+      }, 1000);
+    }
+    
+    function flyToCart(btn) {
+      const cartBtn = document.querySelector('.cart-btn');
+      const btnRect = btn.getBoundingClientRect();
+      const cartRect = cartBtn.getBoundingClientRect();
+      
+      const flying = document.createElement('div');
+      flying.className = 'flying-item';
+      flying.innerHTML = '🍗';
+      flying.style.left = btnRect.left + 'px';
+      flying.style.top = btnRect.top + 'px';
+      flying.style.fontSize = '30px';
+      flying.style.setProperty('--end-x', (cartRect.left - btnRect.left) + 'px');
+      flying.style.setProperty('--end-y', (cartRect.top - btnRect.top) + 'px');
+      
+      document.body.appendChild(flying);
+      setTimeout(() => flying.remove(), 800);
+    }
+    
+    function updateCart() {
+      const badge = document.getElementById('cartBadge');
+      const cartItems = document.getElementById('cartItems');
+      const cartTotal = document.getElementById('cartTotal');
+      
+      const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+      badge.textContent = totalQty;
+      
+      if (cart.length === 0) {
+        cartItems.innerHTML = '<p style="padding: 40px 20px; text-align: center; color: #999;">Keranjang kosong</p>';
+        cartTotal.textContent = 'Total: Rp 0';
+        return;
+      }
+      
+      let html = '';
+      let total = 0;
+      cart.forEach((item, index) => {
+        const subtotal = item.price * item.qty;
+        total += subtotal;
+        html += `
+          <div class="cart-item">
+            <div>
+              <strong>${item.name}</strong><br>
+              <small>Rp ${item.price.toLocaleString('id-ID')} x ${item.qty}</small>
+            </div>
+            <div style="text-align: right;">
+              <strong>Rp ${subtotal.toLocaleString('id-ID')}</strong><br>
+              <button onclick="removeItem(${index})" style="background: #ff5252; border: none; color: white; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 12px; margin-top: 5px;">Hapus</button>
+            </div>
+          </div>
+        `;
+      });
+      cartItems.innerHTML = html;
+      cartTotal.textContent = `Total: Rp ${total.toLocaleString('id-ID')}`;
+    }
+    
+    function removeItem(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+    
+    function toggleCart() {
+      const modal = document.getElementById('cartModal');
+      const overlay = document.getElementById('overlay');
+      if (modal.style.display === 'block') {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+      } else {
+        modal.style.display = 'block';
+        overlay.style.display = 'block';
+      }
+    }
+    
+    function orderWA() {
+      if (cart.length === 0) {
+        alert('Keranjang masih kosong!');
+        return;
+      }
+      
+      let message = 'Halo Rocket Chicken Bojong, saya mau pesan:%0A%0A';
+      let total = 0;
+      cart.forEach(item => {
+        const subtotal = item.price * item.qty;
+        total += subtotal;
+        message += `${item.name} x ${item.qty} = Rp ${subtotal.toLocaleString('id-ID')}%0A`;
+      });
+      message += `%0ATotal: Rp ${total.toLocaleString('id-ID')}`;
+      
+      window.open(`https://wa.me/6287704526253?text=${message}`, '_blank');
+      cart = [];
+      updateCart();
+      toggleCart();
+    }
+    
+    function toggleChat() {
+      const box = document.getElementById('chatbotBox');
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+    
+    function showAnswer(type) {
+      const chatBody = document.getElementById('chatBody');
+      let answer = '';
+      
+      if (type === 'jam') {
+        answer = '<div class="chat-answer">Kami buka setiap hari 09:00 - 21:00. Jam bisa berubah saat hari libur nasional.</div>';
+      } else if (type === 'menu') {
+        answer = '<div class="chat-answer">Ada! Kami punya ayam goreng crispy. Untuk level pedas bisa request ke kasir ya.</div>';
+      } else if (type === 'catering') {
+        answer = '<div class="chat-answer">Minimal order catering 20 box. Hubungi WA 0877-0452-6253 untuk pemesanan.</div>';
+      } else if (type === 'promo') {
+        answer = '<div class="chat-answer">Sekarang ada promo Serba 5.000: Perkedel, Chicken Strip, Ice Cream. Min belanja 15rb!</div>';
+      }
+      
+      chatBody.innerHTML += answer;
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+    
+    // Animasi scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.section').forEach(section => {
+      observer.observe(section);
+    });
+  </script>
+</body>
+</html>
